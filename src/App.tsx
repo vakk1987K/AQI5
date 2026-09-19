@@ -7,29 +7,13 @@ import { PollutantsGrid } from './components/PollutantsGrid';
 import { HealthAdvisories } from './components/HealthAdvisories';
 import { HourlyAndDailyForecast } from './components/HourlyAndDailyForecast';
 import { RainForecastBanner } from './components/RainForecastBanner';
-import { PlayConsoleHub } from './components/PlayConsoleHub';
 import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
 import { AqiScaleModal } from './components/AqiScaleModal';
 import { GovernmentDisclaimerModal } from './components/GovernmentDisclaimerModal';
-import { FullAQIData, LocationData, ClosedTester, Language } from './types';
+import { FullAQIData, LocationData, Language } from './types';
 import { POPULAR_LOCATIONS, fetchFullAQIData, getFallbackAQIData } from './services/weatherAqiService';
 import { getTranslation } from './i18n/translations';
-import { ShieldCheck, Sparkles, Smartphone, ArrowRight, Heart, Landmark } from 'lucide-react';
-
-const INITIAL_TESTERS: ClosedTester[] = [
-  { id: '1', name: 'Marcus Vance', email: 'marcus.vance88@gmail.com', status: 'invited', invitedAt: '2026-09-14' },
-  { id: '2', name: 'Elena Rostova', email: 'elena.rostova@gmail.com', status: 'invited', invitedAt: '2026-09-14' },
-  { id: '3', name: 'David Chen', email: 'chen.david.aqi@gmail.com', status: 'invited', invitedAt: '2026-09-14' },
-  { id: '4', name: 'Sarah Jenkins', email: 'sarah.j.runner@gmail.com', status: 'invited', invitedAt: '2026-09-14' },
-  { id: '5', name: 'Tariq Al-Mansoor', email: 'tariq.mansoor.dev@gmail.com', status: 'invited', invitedAt: '2026-09-15' },
-  { id: '6', name: 'Chloe Dubois', email: 'chloe.dubois75@gmail.com', status: 'invited', invitedAt: '2026-09-15' },
-  { id: '7', name: 'Kenji Takahashi', email: 'kenji.tokyo.test@gmail.com', status: 'invited', invitedAt: '2026-09-15' },
-  { id: '8', name: 'Priya Sharma', email: 'priya.s.delhi@gmail.com', status: 'invited', invitedAt: '2026-09-15' },
-  { id: '9', name: 'Liam O’Connor', email: 'liam.oconnor.aus@gmail.com', status: 'invited', invitedAt: '2026-09-16' },
-  { id: '10', name: 'Sofia Rodriguez', email: 'sofia.rodriguez.test@gmail.com', status: 'invited', invitedAt: '2026-09-16' },
-  { id: '11', name: 'Lukas Meyer', email: 'lukas.meyer.berlin@gmail.com', status: 'invited', invitedAt: '2026-09-16' },
-  { id: '12', name: 'Amara Nwosu', email: 'amara.nwosu.test@gmail.com', status: 'invited', invitedAt: '2026-09-16' },
-];
+import { Landmark } from 'lucide-react';
 
 export default function App() {
   const [currentLocation, setCurrentLocation] = useState<LocationData>(POPULAR_LOCATIONS[0]);
@@ -57,22 +41,10 @@ export default function App() {
     } catch {}
   };
 
-  // Modals & Hubs
-  const [isPlayConsoleOpen, setIsPlayConsoleOpen] = useState(false);
+  // Modals
   const [isPrivacyPolicyOpen, setIsPrivacyPolicyOpen] = useState(false);
   const [isAqiScaleOpen, setIsAqiScaleOpen] = useState(false);
   const [isGovDisclaimerOpen, setIsGovDisclaimerOpen] = useState(false);
-
-  // Closed testers management
-  const [testers, setTesters] = useState<ClosedTester[]>(() => {
-    try {
-      const saved = localStorage.getItem('aqi_testers');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return INITIAL_TESTERS;
-  });
-
-  const optedInCount = testers.filter((t) => t.status === 'opted_in' || t.status === 'active_testing').length;
 
   const loadData = useCallback(async (loc: LocationData, isRefresh = false) => {
     if (isRefresh) setIsRefreshing(true);
@@ -130,43 +102,6 @@ export default function App() {
     setTempUnit((prev) => (prev === 'C' ? 'F' : 'C'));
   };
 
-  const handleToggleTesterOptIn = (id: string) => {
-    setTesters((prev) => {
-      const updated = prev.map((t) => {
-        if (t.id === id) {
-          const isOpted = t.status === 'opted_in' || t.status === 'active_testing';
-          return {
-            ...t,
-            status: isOpted ? ('invited' as const) : ('opted_in' as const),
-            optedInAt: isOpted ? undefined : new Date().toISOString().slice(0, 10),
-          };
-        }
-        return t;
-      });
-      try {
-        localStorage.setItem('aqi_testers', JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
-  };
-
-  const handleAddTester = (name: string, email: string) => {
-    const newTester: ClosedTester = {
-      id: Date.now().toString(),
-      name,
-      email,
-      status: 'invited',
-      invitedAt: new Date().toISOString().slice(0, 10),
-    };
-    setTesters((prev) => {
-      const updated = [...prev, newTester];
-      try {
-        localStorage.setItem('aqi_testers', JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-sky-500 selection:text-white flex flex-col">
       {/* Navigation Header */}
@@ -179,8 +114,6 @@ export default function App() {
         onToggleTempUnit={handleToggleTempUnit}
         onRefresh={() => loadData(currentLocation, true)}
         isRefreshing={isRefreshing}
-        onOpenPlayConsoleHub={() => setIsPlayConsoleOpen(true)}
-        optedInCount={optedInCount}
         currentLanguage={language}
         onSelectLanguage={handleSelectLanguage}
         t={t}
@@ -247,51 +180,6 @@ export default function App() {
           t={t}
         />
 
-        {/* Release & Policy Action Card (Quick in-app CTA) */}
-        <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-amber-950/40 border border-amber-500/30 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
-          <div className="flex items-start gap-3.5">
-            <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
-              <Smartphone className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-white">
-                  Google Play Production Readiness Status
-                </h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">
-                  {optedInCount} of 12 Testers Opted In
-                </span>
-              </div>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed max-w-2xl">
-                Track your 14-day closed test window, recruit required testers, access pre-written production questionnaire answers, and resolve policy status for <code className="text-sky-300 font-mono">app.vercel.aqi_app3.twa</code>.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-auto">
-            <button
-              onClick={() => setIsGovDisclaimerOpen(true)}
-              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-semibold border border-amber-500/30 transition flex items-center gap-1.5"
-            >
-              <Landmark className="w-3.5 h-3.5" />
-              <span>Gov Disclaimer</span>
-            </button>
-            <button
-              onClick={() => setIsPrivacyPolicyOpen(true)}
-              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition"
-            >
-              Privacy Policy
-            </button>
-            <button
-              onClick={() => setIsPlayConsoleOpen(true)}
-              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-amber-500/20"
-            >
-              <span>Play Console Hub</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
         {/* Non-Government Entity Official Transparency Notice */}
         <div className="rounded-xl bg-slate-900/60 border border-slate-800 p-3.5 text-xs text-slate-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-start sm:items-center gap-2">
@@ -339,27 +227,11 @@ export default function App() {
             >
               EPA AQI Scale
             </button>
-            <span>•</span>
-            <button
-              onClick={() => setIsPlayConsoleOpen(true)}
-              className="hover:text-amber-300 text-amber-400 font-semibold transition"
-            >
-              Testing Hub ({optedInCount}/12)
-            </button>
           </div>
         </div>
       </footer>
 
       {/* Modals */}
-      <PlayConsoleHub
-        isOpen={isPlayConsoleOpen}
-        onClose={() => setIsPlayConsoleOpen(false)}
-        testers={testers}
-        onToggleTesterOptIn={handleToggleTesterOptIn}
-        onAddTester={handleAddTester}
-        onOpenPrivacyPolicy={() => setIsPrivacyPolicyOpen(true)}
-      />
-
       <PrivacyPolicyModal
         isOpen={isPrivacyPolicyOpen}
         onClose={() => setIsPrivacyPolicyOpen(false)}

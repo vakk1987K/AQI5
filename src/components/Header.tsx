@@ -13,8 +13,6 @@ interface HeaderProps {
   onToggleTempUnit: () => void;
   onRefresh: () => void;
   isRefreshing: boolean;
-  onOpenPlayConsoleHub: () => void;
-  optedInCount: number;
   currentLanguage: Language;
   onSelectLanguage: (lang: Language) => void;
   t: TranslationStrings;
@@ -29,8 +27,6 @@ export function Header({
   onToggleTempUnit,
   onRefresh,
   isRefreshing,
-  onOpenPlayConsoleHub,
-  optedInCount,
   currentLanguage,
   onSelectLanguage,
   t,
@@ -336,20 +332,6 @@ export function Header({
               </div>
             )}
           </div>
-
-          {/* Play Console Hub Trigger (Desktop) */}
-          <button
-            onClick={onOpenPlayConsoleHub}
-            id="desktop-play-console-btn"
-            className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-medium transition shrink-0"
-            title="Google Play Console Closed Testing & Policy Hub"
-          >
-            <ShieldCheck className="w-4 h-4 text-amber-400" />
-            <span>Play Console Hub</span>
-            <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-[10px] font-bold">
-              {optedInCount}/12
-            </span>
-          </button>
         </div>
       </div>
     </header>
